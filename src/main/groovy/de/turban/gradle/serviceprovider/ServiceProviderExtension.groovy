@@ -15,7 +15,7 @@ class ServiceProviderExtension {
     private Map<String, String> serviceInterfacesInternal
 
     @Inject
-    ServiceProviderExtension(Project project){
+    ServiceProviderExtension(Project project) {
         this.project = project
         this.serviceInterfacesInternal = [:]
         serviceInterfaces = project.objects.mapProperty(String.class, String.class)
@@ -23,13 +23,13 @@ class ServiceProviderExtension {
     }
 
     @SuppressWarnings("unused")
-    void serviceInterface(String ifName, List<String> implClasses = null){
+    void serviceInterface(String ifName, List<String> implClasses = null) {
         def implClsLoc = []
-        if(implClasses != null){
+        if (implClasses != null) {
             implClsLoc.addAll(implClasses)
         }
         implClsLoc.add(ifName)
-        for(String implName : implClsLoc){
+        for (String implName : implClsLoc) {
             serviceInterfacesInternal.put(implName, ifName)
         }
     }

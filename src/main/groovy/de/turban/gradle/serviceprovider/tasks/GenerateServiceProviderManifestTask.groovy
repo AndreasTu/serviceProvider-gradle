@@ -4,16 +4,8 @@ import de.turban.gradle.serviceprovider.ServiceProviderExtension
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.SkipWhenEmpty
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.SourceSetOutput
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
 import javax.inject.Inject
 
@@ -27,7 +19,6 @@ class GenerateServiceProviderManifestTask extends DefaultTask {
     public static final String NL = "\n"
 
     @Input
-    @SkipWhenEmpty
     MapProperty<String, String> serviceInterfaces
 
     @Classpath
@@ -38,12 +29,12 @@ class GenerateServiceProviderManifestTask extends DefaultTask {
     File destinationDir
 
     @Inject
-    GenerateServiceProviderManifestTask(ServiceProviderExtension extension){
+    GenerateServiceProviderManifestTask(ServiceProviderExtension extension) {
         description = 'Generate META-INF/services for the Java ServiceLoader'
         group = 'Source Generation'
 
-        JavaPluginConvention javaConvention = project.convention.getPlugin(JavaPluginConvention)
-        SourceSet main = javaConvention.sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        SourceSetContainer sourceSets = project.extensions.getByType(SourceSetContainer)
+        SourceSet main = sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME)
         SourceSetOutput mainOutput = main.output
         classes = mainOutput.classesDirs
         destinationDir = getTemporaryDir()
@@ -51,7 +42,7 @@ class GenerateServiceProviderManifestTask extends DefaultTask {
     }
 
     @TaskAction
-    void generate(){
+    void generate() {
         project.delete(destinationDir)
 
         ClassServiceImplFinder finder = new ClassServiceImplFinder(serviceInterfaces.get())

@@ -9,30 +9,34 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ClassServiceImplFinder {
     private final Map<String, List<String>> serviceImpls;
     private final Map<String, String> serviceInterfaces;
 
-    ClassServiceImplFinder(Map<String, String> serviceInterfaces){
+    ClassServiceImplFinder(Map<String, String> serviceInterfaces) {
         this.serviceInterfaces = buildIfMap(serviceInterfaces);
         this.serviceImpls = new LinkedHashMap<>();
     }
 
     private static Map<String, String> buildIfMap(Map<String, String> serviceInterfaces) {
         Map<String, String> m = new HashMap<>();
-        for(Map.Entry<String,String> e: serviceInterfaces.entrySet()){
+        for (Map.Entry<String, String> e : serviceInterfaces.entrySet()) {
             String old = m.put(toInternalName(e.getKey()), toInternalName(e.getValue()));
-            if( old!= null){
+            if (old != null) {
                 throw new IllegalStateException("Duplicated class entry for " + e.getKey());
             }
         }
         return m;
     }
 
-    private static String toInternalName(String clsName){
-        return clsName.replace(".","/");
+    private static String toInternalName(String clsName) {
+        return clsName.replace(".", "/");
     }
 
     public Map<String, List<String>> getServiceImpls() {
@@ -40,48 +44,48 @@ public class ClassServiceImplFinder {
     }
 
     public void read(File clsFile) throws IOException {
-        try(InputStream in = Files.newInputStream(clsFile.toPath())){
+        try (InputStream in = Files.newInputStream(clsFile.toPath())) {
             ClassReader reader = new ClassReader(in);
             IfClassVisitor v = new IfClassVisitor();
-            reader.accept(v, ClassReader.SKIP_CODE| ClassReader.SKIP_DEBUG| ClassReader.SKIP_FRAMES);
+            reader.accept(v, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         }
     }
 
     private class IfClassVisitor extends ClassVisitor {
         IfClassVisitor() {
-            super(Opcodes.ASM7);
+            super(Opcodes.ASM9);
         }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            if((access & Opcodes.ACC_ABSTRACT) != 0){
+            if ((access & Opcodes.ACC_ABSTRACT) != 0) {
                 //Do not process Abstract
                 return;
             }
-            if((access & Opcodes.ACC_INTERFACE) != 0){
+            if ((access & Opcodes.ACC_INTERFACE) != 0) {
                 //Do not process interfaces
                 return;
             }
-            if((access & Opcodes.ACC_ENUM) != 0){
+            if ((access & Opcodes.ACC_ENUM) != 0) {
                 return;
             }
-            if((access & Opcodes.ACC_MODULE) != 0){
+            if ((access & Opcodes.ACC_MODULE) != 0) {
                 return;
             }
-            if((access & Opcodes.ACC_PRIVATE) != 0){
+            if ((access & Opcodes.ACC_PRIVATE) != 0) {
                 return;
             }
 
             checkIf(name, superName);
-            for(String ifName : interfaces){
+            for (String ifName : interfaces) {
                 checkIf(name, ifName);
             }
         }
     }
 
-    private void checkIf(String srcName, String ifName){
+    private void checkIf(String srcName, String ifName) {
         String realIfName = serviceInterfaces.get(ifName);
-        if( realIfName != null){
+        if (realIfName != null) {
             List<String> l = serviceImpls.computeIfAbsent(Type.getObjectType(realIfName).getClassName(), (k) -> new ArrayList<>());
             l.add(Type.getObjectType(srcName).getClassName());
         }

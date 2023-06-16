@@ -1,0 +1,12 @@
+[versions]
+asm = "9.5"
+
+[libraries]
+
+# Testing
+spockCore = { module = "org.spockframework:spock-core", version = "2.3-groovy-3.0" }
+junitPlatform = { module = "org.junit.platform:junit-platform-engine", version = "1.9.3" }
+
+
+# Asm
+asm = { module = 'org.ow2.asm:asm', version.ref = "asm" }

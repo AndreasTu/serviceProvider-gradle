@@ -10,7 +10,7 @@ import org.gradle.jvm.tasks.Jar
 
 @SuppressWarnings("unused")
 @CompileStatic
-class ServiceProviderPlugin implements  Plugin<Project> {
+class ServiceProviderPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
@@ -21,7 +21,7 @@ class ServiceProviderPlugin implements  Plugin<Project> {
         TaskProvider<GenerateServiceProviderManifestTask> taskProvider = tasks.register(GenerateServiceProviderManifestTask.TASK_NAME, GenerateServiceProviderManifestTask, extension)
         tasks.named('jar', Jar).configure({
             it.dependsOn(taskProvider)
-            it.from({taskProvider.get().getDestinationDir()})
+            it.from({ taskProvider.get().getDestinationDir() })
         })
     }
 }
